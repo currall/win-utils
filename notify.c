@@ -6,7 +6,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     const char *text = (lpCmdLine && lpCmdLine[0] != '\0') ? lpCmdLine : "Default Text";
     const char *windowName = "Notification";
 
-    HWND hwnd = CreateCustomWindow(hInstance, text, windowName, nCmdShow);
+    HWND hwnd = CreateCustomWindow(hInstance, text, windowName, nCmdShow, 240,120);
     if (!hwnd) {
         return 0;
     }

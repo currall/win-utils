@@ -8,6 +8,13 @@
 - usage
     - notify message
 
+## clock
+- creates small, always-on-top window containing a clock
+- building
+    - gcc -o clock.exe clock.c window.c -lgdi32
+- usage
+    - clock.exe
+
 ## sudo
 - runs any command as admin
 - building
