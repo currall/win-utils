@@ -14,18 +14,14 @@ HICON CreateBatteryIcon(int percentage, int charging) {
     COLORREF fg_color = RGB(255,255,255);
 
     if (charging == 1){
-        if (percentage >= 95){ // full and charging
-            fg_color = RGB(0, 150, 50);  // green text 
-        } else if (percentage <= 25){ // low battery charging
-            fg_color = RGB(200, 150, 0); // orange text
-        } else { // charging
-            fg_color = RGB(100,150,255); // blue text
-        }
+        fg_color = RGB(255,((255*percentage)/100),0);
     } else { // not charging
         if (percentage >= 95){ // full
-            bg_color = RGB(0, 150, 50); // green bg
-        } else if (percentage <= 25){ // low
-            bg_color = RGB(255, 0, 0); // red bg
+            fg_color = RGB(0, 150, 50); // green bg
+        } else if (percentage <= 30){ // low
+            fg_color = RGB(255, 200, 0); // yellow bg
+        } else if (percentage <= 10){ // v low
+            fg_color = RGB(255, 0, 0); // red bg
         }
     }
 
