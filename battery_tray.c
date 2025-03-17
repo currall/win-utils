@@ -9,9 +9,20 @@ HICON CreateBatteryIcon(int percentage) {
     HBITMAP hBitmap = CreateCompatibleBitmap(hdc, 16, 16);
     SelectObject(hMemDC, hBitmap);
 
-    // Clear background
+    // Clear background with custom color
+    COLORREF bg_color = RGB(0,0,0);
+    if (percentage >= 95){
+        bg_color = RGB(0, 150, 50);
+    } else if (percentage <= 25){
+        bg_color = RGB(255, 0, 0);
+    }
+    HBRUSH hBrush = CreateSolidBrush(bg_color); // Black background
     RECT rect = {0, 0, 16, 16};
-    FillRect(hMemDC, &rect, (HBRUSH)(0));
+    FillRect(hMemDC, &rect, hBrush);
+    DeleteObject(hBrush);
+
+    // Set text color
+    SetTextColor(hMemDC, RGB(255, 255, 255)); // White text
 
     // Draw text
     char text[4];
