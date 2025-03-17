@@ -21,3 +21,8 @@
     - gcc -o sudo.exe sudo.c
 - usage
     - sudo command
+
+## battery_tray
+- adds an icon to the system tray, displaying the battery percentage of a laptop
+- building
+    - gcc battery_tray.c -o battery_tray -luser32 -lgdi32 -lshell32
