@@ -96,6 +96,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!hwnd) {
         return 1;
     }
+    
+    ShowWindow(GetConsoleWindow(), SW_HIDE);
 
     SetTimer(hwnd, 1, 10000, NULL); // update every 10s
 
