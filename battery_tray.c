@@ -2,29 +2,39 @@
 #include <stdio.h>
 
 #define TRAY_ICON_ID 1001
+#define ID_TRAY_EXIT 1002
 
-HICON CreateBatteryIcon(int percentage) {
+HICON CreateBatteryIcon(int percentage, int charging) {
     HDC hdc = GetDC(NULL);
     HDC hMemDC = CreateCompatibleDC(hdc);
     HBITMAP hBitmap = CreateCompatibleBitmap(hdc, 16, 16);
     SelectObject(hMemDC, hBitmap);
 
-    // Clear background with custom color
     COLORREF bg_color = RGB(0,0,0);
-    if (percentage >= 95){
-        bg_color = RGB(0, 150, 50);
-    } else if (percentage <= 25){
-        bg_color = RGB(255, 0, 0);
+    COLORREF fg_color = RGB(255,255,255);
+
+    if (charging == 1){
+        if (percentage >= 95){ // full and charging
+            fg_color = RGB(0, 150, 50);  // green text 
+        } else if (percentage <= 25){ // low battery charging
+            fg_color = RGB(200, 150, 0); // orange text
+        } else { // charging
+            fg_color = RGB(100,150,255); // blue text
+        }
+    } else { // not charging
+        if (percentage >= 95){ // full
+            bg_color = RGB(0, 150, 50); // green bg
+        } else if (percentage <= 25){ // low
+            bg_color = RGB(255, 0, 0); // red bg
+        }
     }
-    HBRUSH hBrush = CreateSolidBrush(bg_color); // Black background
+
+    HBRUSH hBrush = CreateSolidBrush(bg_color); // background
     RECT rect = {0, 0, 16, 16};
     FillRect(hMemDC, &rect, hBrush);
     DeleteObject(hBrush);
 
-    // Set text color
-    SetTextColor(hMemDC, RGB(255, 255, 255)); // White text
-
-    // Draw text
+    SetTextColor(hMemDC, fg_color); // text
     char text[4];
     sprintf(text, "%d", percentage);
     SetBkMode(hMemDC, TRANSPARENT);
@@ -37,6 +47,18 @@ HICON CreateBatteryIcon(int percentage) {
     DeleteObject(hBitmap);
 
     return hIcon;
+}
+
+void ShowContextMenu(HWND hwnd) { // quit context menu
+    POINT pt;
+    GetCursorPos(&pt);
+
+    HMENU hMenu = CreatePopupMenu();
+    AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, "Quit");
+
+    SetForegroundWindow(hwnd);
+    TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+    DestroyMenu(hMenu);
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -54,8 +76,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         nid.uCallbackMessage = WM_APP + 1;
 
         int batteryPercentage = status.BatteryLifePercent;
-        nid.hIcon = CreateBatteryIcon(batteryPercentage);
-        sprintf(nid.szTip, "Battery: %d%%", batteryPercentage);
+        int batteryCharging = status.ACLineStatus;
+
+        nid.hIcon = CreateBatteryIcon(batteryPercentage, batteryCharging);
+        sprintf(nid.szTip, "Battery: %d%%", batteryPercentage); // hover text
 
         Shell_NotifyIcon(NIM_ADD, &nid);
         break;
@@ -64,15 +88,28 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     case WM_TIMER: {
         SYSTEM_POWER_STATUS status;
         GetSystemPowerStatus(&status);
-
         int batteryPercentage = status.BatteryLifePercent;
+        int batteryCharging = status.ACLineStatus;
+
         DestroyIcon(nid.hIcon);
-        nid.hIcon = CreateBatteryIcon(batteryPercentage);
+        nid.hIcon = CreateBatteryIcon(batteryPercentage,batteryCharging);
         sprintf(nid.szTip, "Battery: %d%%", batteryPercentage);
 
         Shell_NotifyIcon(NIM_MODIFY, &nid);
         break;
     }
+
+    case WM_APP + 1: // right click
+        if (lParam == WM_RBUTTONUP) {
+            ShowContextMenu(hwnd);
+        }
+        break;
+
+    case WM_COMMAND: // "quit" item context menu
+        if (LOWORD(wParam) == ID_TRAY_EXIT) {
+            PostQuitMessage(0);
+        }
+        break;
 
     case WM_DESTROY:
         Shell_NotifyIcon(NIM_DELETE, &nid);
