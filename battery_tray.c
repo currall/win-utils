@@ -12,16 +12,17 @@ HICON CreateBatteryIcon(int percentage, int charging) {
 
     COLORREF bg_color = RGB(0,0,0);
     COLORREF fg_color = RGB(255,255,255);
-
+    
     if (charging == 1){
-        fg_color = RGB(255,((255*percentage)/100),0);
+        fg_color = RGB(0,200,100);
     } else { // not charging
-        if (percentage >= 95){ // full
-            fg_color = RGB(0, 150, 50); // green bg
-        } else if (percentage <= 30){ // low
-            fg_color = RGB(255, 200, 0); // yellow bg
-        } else if (percentage <= 10){ // v low
-            fg_color = RGB(255, 0, 0); // red bg
+        if (percentage <= 30){ // low
+            fg_color = RGB(255, 160, 40); // yellow bg
+        } else if (percentage <= 20){ // v low
+            fg_color = RGB(255, 50, 0); // red bg
+        } else if (percentage <= 6){ // v low
+            bg_color = RGB(255,0,0);
+            fg_color = RGB(0, 0, 0); // red bg
         }
     }
 
@@ -33,6 +34,8 @@ HICON CreateBatteryIcon(int percentage, int charging) {
     SetTextColor(hMemDC, fg_color); // text
     char text[4];
     sprintf(text, "%d", percentage);
+    if (percentage == 100)
+        sprintf(text, ":D", percentage);
     SetBkMode(hMemDC, TRANSPARENT);
     DrawText(hMemDC, text, -1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
