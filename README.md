@@ -20,3 +20,4 @@
 # building
 
 - `make program`
+- e.g. `make battery_tray`
