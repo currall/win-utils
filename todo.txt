@@ -1,0 +1,3 @@
+- separate notification tray generator from battery tray
+- cpu, memory usage apps
+    - black background, color fills from bottom

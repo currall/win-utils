@@ -9,6 +9,9 @@ all: notify clock sudo battery_tray
 notify: notify.c window.c
 	$(CC) -o notify.exe notify.c window.c -lgdi32
 
+battery: battery.c window.c
+	$(CC) -o battery.exe battery.c window.c -lgdi32
+
 clock: clock.c window.c
 	$(CC) -o clock.exe clock.c window.c -lgdi32
 
