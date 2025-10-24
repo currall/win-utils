@@ -1,25 +1,45 @@
-# Makefile
+# === Makefile ===
 
-CC = gcc
+CC := gcc
+CFLAGS := -Iinclude
+CFLAGS_DEBUG := -Wall -Wextra -Iinclude
 
-.PHONY: all notify clock sudo battery_tray clean
+SRC_DIR := src
+OBJ_DIR := build
+BIN_DIR := bin
 
-all: notify clock sudo battery_tray
+# dirs
+$(shell mkdir -p $(OBJ_DIR) $(BIN_DIR))
 
-notify: notify.c window.c
-	$(CC) -o notify.exe notify.c window.c -lgdi32
+# programs
+PROGRAMS := notify clock sudo battery_tray battery
 
-battery: battery.c window.c
-	$(CC) -o battery.exe battery.c window.c -lgdi32
+# default
+.PHONY: all clean
+all: $(PROGRAMS)
 
-clock: clock.c window.c
-	$(CC) -o clock.exe clock.c window.c -lgdi32
+# === Individual targets ===
 
-sudo: sudo.c
-	$(CC) -o sudo.exe sudo.c
+notify: $(OBJ_DIR)/notify.o $(OBJ_DIR)/window.o
+	$(CC) $^ -o $(BIN_DIR)/notify.exe -lgdi32
 
-battery_tray: battery_tray.c
-	$(CC) battery_tray.c -o battery_tray -luser32 -lgdi32 -lshell32 -mwindows
+battery: $(OBJ_DIR)/battery.o $(OBJ_DIR)/window.o
+	$(CC) $^ -o $(BIN_DIR)/battery.exe -lgdi32
 
+clock: $(OBJ_DIR)/clock.o $(OBJ_DIR)/window.o
+	$(CC) $^ -o $(BIN_DIR)/clock.exe -lgdi32
+
+sudo: $(OBJ_DIR)/sudo.o
+	$(CC) $^ -o $(BIN_DIR)/sudo.exe
+
+battery_tray: $(OBJ_DIR)/battery_tray.o $(OBJ_DIR)/window.o
+	$(CC) $^ -o $(BIN_DIR)/battery_tray.exe -luser32 -lgdi32 -lshell32 -mwindows
+
+# === Generic build rule ===
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# === Clean ===
 clean:
-	rm -f notify.exe clock.exe sudo.exe battery_tray
+	rm -rf $(OBJ_DIR) $(BIN_DIR)

@@ -2,21 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <windows.h>
 
+#define FONT_PADDING_FRACTION 0.85f 
+#define ASPECT_RATIO_APPROX 0.5f 
 #define CLASS_NAME "myWindowClass"
 
-int CalculateFontSize(int windowWidth, const char* text)
+int CalculateFontSize(int windowWidth, int windowHeight, const char* text)
 {
-    int fontSize = (windowWidth / (strlen(text) + 1)) * 2;
-    if (fontSize < 10) fontSize = 10; 
-    return fontSize;
+    int heightConstraint = (int)((float)windowHeight * FONT_PADDING_FRACTION);
+    float textLen = (float)strlen(text);
+    if (textLen < 1.0f) textLen = 1.0f; // prevent division by zero
+    
+    int widthConstraint = (int)((float)windowWidth * FONT_PADDING_FRACTION / (textLen * ASPECT_RATIO_APPROX));
+    int finalFontSize = min(heightConstraint, widthConstraint);
+    
+    if (finalFontSize < 10) finalFontSize = 10;
+    return -finalFontSize; 
 }
 
 void SetFontBasedOnWindowWidth(HWND hwnd, WindowData *data)
 {
     RECT rect;
     GetClientRect(hwnd, &rect);
-    int fontSize = CalculateFontSize(rect.right, data->text);
+    
+    int fontSize = CalculateFontSize(rect.right, rect.bottom, data->text); 
 
     if (data && data->hFont) {
         DeleteObject(data->hFont);
@@ -82,6 +92,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
+		
+		case WM_KEYDOWN:
+            if (wParam == VK_SPACE) {
+                // Get the current window style
+                LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+
+                if (style & WS_POPUP) {
+                    // Title bar is hidden (WS_POPUP is set), so SHOW it.
+                    // Remove WS_POPUP and add standard window styles.
+                    style &= ~WS_POPUP;
+                    style |= (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX);
+                } else {
+                    // Title bar is visible, so HIDE it.
+                    // Remove standard styles and add WS_POPUP.
+                    style &= ~(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU);
+                    style |= (WS_POPUP | WS_SIZEBOX); // Keep WS_SIZEBOX
+                }
+
+                // Apply the new style
+                SetWindowLongPtr(hwnd, GWL_STYLE, style);
+
+                // Force the window to redraw its frame/non-client area
+                SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+            }
+            break;
 
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);

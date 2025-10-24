@@ -19,5 +19,7 @@
 
 # building
 
+- `make all`
+	- builds all tools
 - `make program`
-- e.g. `make battery_tray`
+	- e.g. `make battery_tray`

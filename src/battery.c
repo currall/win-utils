@@ -22,7 +22,7 @@ void UpdateBattery(HWND hwnd) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    const char *windowName = "Clock";
+    const char *windowName = "Battery";
     HWND hwnd = CreateCustomWindow(hInstance, "0", windowName, nCmdShow,160,60);
     if (!hwnd) {
         return 0;
