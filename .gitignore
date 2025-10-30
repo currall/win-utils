@@ -1,1 +1,5 @@
-*.exe
+bin/
+build/
+
+*/*.exe
+*/*.o

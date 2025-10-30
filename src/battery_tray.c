@@ -15,11 +15,12 @@ typedef struct { // track locked status, and time locked
     time_t lockTime;
 } APP_STATE;
 
-HICON CreateBatteryIcon(int percentage, int charging, BOOL locked) {
+HICON CreateBatteryIcon(int percentage, int charging, BOOL locked)
+{
     HDC hdc = GetDC(NULL);
     HDC hMemDC = CreateCompatibleDC(hdc);
-    HBITMAP hBitmap = CreateCompatibleBitmap(hdc, 16, 16);
-    SelectObject(hMemDC, hBitmap);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hdc, 32, 32);
+    HGDIOBJ hOldBitmap = SelectObject(hMemDC, hBitmap);
 
     COLORREF bg_color = RGB(0, 0, 0);
     COLORREF fg_color = RGB(255, 255, 255);
@@ -40,22 +41,45 @@ HICON CreateBatteryIcon(int percentage, int charging, BOOL locked) {
     }
 
     HBRUSH hBrush = CreateSolidBrush(bg_color);
-    RECT rect = {0, 0, 16, 16};
+    RECT rect = {0, 0, 32, 32};
     FillRect(hMemDC, &rect, hBrush);
-    DeleteObject(hBrush);
 
     SetTextColor(hMemDC, fg_color);
     SetBkMode(hMemDC, TRANSPARENT);
-    char text[4];
+
+    // create font
+    HFONT hFont = CreateFont(
+        32, 0, 0, 0,
+        FW_BOLD, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        TEXT("Segoe UI")
+    );
+    HFONT hOldFont = SelectObject(hMemDC, hFont);
+
+    char text[8];
     if (percentage == 100)
         sprintf(text, ":D");
     else
         sprintf(text, "%d", percentage);
-    DrawText(hMemDC, text, -1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
-    HICON hIcon = CreateIconIndirect(&(ICONINFO){TRUE, 0, 0, hBitmap, hBitmap});
+    DrawTextA(hMemDC, text, -1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
-	// clean up
+    // create icon
+    ICONINFO ii = {0};
+    ii.fIcon = TRUE;
+    ii.hbmColor = hBitmap;
+    ii.hbmMask = hBitmap;
+    HICON hIcon = CreateIconIndirect(&ii);
+
+    // cleanup
+    SelectObject(hMemDC, hOldFont);
+    DeleteObject(hFont);
+    SelectObject(hMemDC, hOldBitmap);
+    DeleteObject(hBrush);
     DeleteDC(hMemDC);
     ReleaseDC(NULL, hdc);
     DeleteObject(hBitmap);
